@@ -1,0 +1,13 @@
+# Local notebook drafts / older generated copies
+Queuechella_Colab_Simulation_Report.ipynb
+Queuechella_Colab_Simulation_Report (1).ipynb
+Queuechella_Colab_Simulation_Report (2).ipynb
+Queuechella_Colab_Simulation_Report (3).ipynb
+
+# Local agent/system notes
+coding_agent_system_prompt.txt
+
+# Python/Jupyter cache files
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
