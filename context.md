@@ -299,31 +299,30 @@ Current event strings include:
 
 ```text
 ARRIVAL
-ENTRANCE_SERVICE_START
 ENTRANCE_SERVICE_END
 ACTIVITY_DECISION
-SERVICE_START
 SERVICE_END
 BREAK_END
 QUEUE_ABANDON
-MAIN_STAGE_SHOW_START
-MAIN_STAGE_SHOW_END
-SIDE_STAGE_SHOW_START
-SIDE_STAGE_SHOW_END
+SHOW_START
+SHOW_END
 SHOW_EARLY_LEAVE
 DJ_STAGE_ENTER
 DJ_STAGE_EXIT
+FOOD_ORDER_END
+FOOD_PREP_END
+FOOD_EATING_END
 DAY_END
 SIMULATION_END
 ```
 
-`ENTRANCE_SERVICE_START` and `SERVICE_START` may be handled immediately by
-`try_start_next_resource()` through a constructed event rather than always being
-inserted into the future-event calendar.
+Entrance and regular resource service starts are immediate helper operations,
+not future-event-calendar event types. `try_start_next_resource()` calls
+`start_entrance_service()` or `start_resource_service()` directly and schedules
+the corresponding completion event.
 
-MainStage and SideStage use separate start/end event strings. Do not replace them
-with generic `SHOW_START` or `SHOW_END` labels unless both the code and event
-diagram are intentionally refactored.
+MainStage and SideStage share the generic `SHOW_START` and `SHOW_END` event
+strings. The relevant stage name is carried in the event `target`.
 
 `SHOW_EARLY_LEAVE` currently applies to MainStage logic.
 
@@ -337,47 +336,23 @@ ACTIVITY_DECISION -> DJ_STAGE_ENTER -> DJ_STAGE_EXIT -> ACTIVITY_DECISION
 
 ## Current Food Event Representation
 
-This section is important because the current code and a proposed future event
-diagram are not yet identical.
-
-The current notebook does not define these event strings:
+Food uses three explicit completion events rather than `SERVICE_END` payload
+phases. The current flow is:
 
 ```text
-FOOD_ORDER_END
-FOOD_PREP_END
-FOOD_EATING_END
-```
-
-Food currently uses `SERVICE_END` and a `phase` value in the payload.
-
-Current behavior:
-
-1. `sample_service_duration()` combines cashier/bar time and food-preparation
-   time for the selected restaurant.
-2. `handle_service_start()` schedules `SERVICE_END` with `phase="service"`.
-3. At that `SERVICE_END`, the food resource is released, the next queued visitor
-   may begin service, payment and food satisfaction are processed, and an eating
-   duration is sampled.
-4. A second `SERVICE_END` is scheduled with `phase="eat"`.
-5. At the eating completion, `complete_activity(entity, "Food")` continues to
-   the existing activity-decision mechanism.
-
-Therefore, the current implemented flow is approximately:
-
-```text
-ACTIVITY_DECISION
--> SERVICE_START
--> SERVICE_END (cashier + preparation completed)
--> SERVICE_END (phase="eat")
+food routing
+-> immediate cashier-service start
+-> FOOD_ORDER_END
+-> FOOD_PREP_END
+-> FOOD_EATING_END
 -> ACTIVITY_DECISION
 ```
 
-Food queues currently do not schedule queue-abandonment events.
-
-A possible future course-oriented refactor is to introduce separate real events
-`FOOD_ORDER_END`, `FOOD_PREP_END`, and `FOOD_EATING_END`. That refactor has not
-yet been implemented. If it is implemented, update the code, validation, event
-diagram, and this context together.
+At `FOOD_ORDER_END`, the restaurant cashier is released and the next queued
+visitor may begin ordering immediately. Payment and food satisfaction are then
+processed, and food preparation is scheduled. The visitor remains in
+`IN_SERVICE` state during preparation and eating, as in the previous
+implementation. Food queues do not schedule queue-abandonment events.
 
 ---
 
@@ -532,6 +507,7 @@ The validation section currently checks:
 - DJ acceptance-rejection support,
 - finite Box-Muller output,
 - PhotoStation support and interval proportions,
+- distinct food order, preparation, and eating events with immediate cashier reuse,
 - day-end queue/resource/stage cleanup,
 - FriendsGroup, Couple, and Single arrival windows,
 - FriendsGroup size,
