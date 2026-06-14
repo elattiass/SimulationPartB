@@ -1,154 +1,287 @@
 # Queuechella Simulation Project Context
 
-## Purpose Of This File
+## Purpose
 
-This file is the working context for the Queuechella project. It should guide every future coding or report-editing step in this repository.
+This file is the working context for future changes to the Queuechella project.
+It must describe the notebook as it actually exists, not only the intended design.
 
-The project must read as a **Simulation course assignment**, not as a professional software product. Prefer simple, transparent, course-aligned modeling choices over technically fancy solutions.
+The project is a Simulation course assignment. Prefer simple, transparent,
+course-aligned choices over advanced software engineering or statistical methods
+that were not taught in the course.
 
-Expanded course material is available locally at:
-
-```text
-c:\Users\User\Documents\לימודים\שנה ג'\סמ' ב\סימולציה\simulation_course_context.md
-```
-
-Use that file as the detailed course reference when needed. This project-level `context.md` summarizes the rules that matter most for the Queuechella notebook.
+When this file and the notebook disagree, inspect the notebook and the official
+assignment before making changes, then update this file.
 
 ---
 
-## Current Main Deliverable
+## Sources Of Truth
 
-The official deliverable notebook is:
+Use these sources in this order:
+
+1. Official assignment: `Course Project 2026B.pdf`.
+2. Active notebook: `Queuechella_Colab_Simulation_Report (4).ipynb`.
+3. Project context: `context.md`.
+4. Course summary material supplied by the user, when available.
+
+An extracted Markdown copy of the assignment may also exist at:
+
+```text
+C:\Users\User\Downloads\Course Project 2026B.md
+```
+
+Older notebook copies `(1)`, `(2)`, `(3)`, and
+`Queuechella_Colab_Simulation_Report.ipynb` are drafts unless the user explicitly
+asks to use them.
+
+---
+
+## Current Deliverable
+
+The official project deliverable is one notebook:
 
 ```text
 Queuechella_Colab_Simulation_Report (4).ipynb
 ```
 
-Older notebook copies such as `(1)`, `(2)`, `(3)`, and `Queuechella_Colab_Simulation_Report.ipynb` are draft copies and should not be treated as the active deliverable unless the user explicitly asks.
+It contains both:
 
-The notebook is both:
+1. executable Python simulation code, and
+2. the written simulation report.
 
-1. executable simulation code, and
-2. the written project report.
+The report uses Hebrew RTL formatting. Internal Python identifiers, dictionary
+keys, metric names, scenario names, and event strings remain in English.
 
-The report is currently written mainly in **Hebrew RTL academic style**. Internal Python identifiers remain in English.
+The notebook is designed to run locally with the project `.venv` using Python
+3.11, and it remains compatible with Google Colab when the Excel file is uploaded
+to the runtime.
 
----
-
-## Current Repository / Git Notes
-
-- The project was pushed to GitHub at:
+Required data file:
 
 ```text
-https://github.com/elattiass/SimulationPartB.git
+samples_for_simulation.xlsx
 ```
 
-- Branch used locally: `Elad`.
-- `Queuechella_Colab_Simulation_Report (4).ipynb` currently has local changes after the last push.
-- If asked to push again, commit the current notebook and `context.md` changes deliberately.
-- Do not include old draft notebooks unless the user explicitly requests it.
+Do not hard-code a Windows path for the Excel file inside the notebook. The
+notebook currently loads it relative to the kernel working directory.
 
 ---
 
-## Core Course Principle
+## Course Modeling Principle
 
-When choosing between:
+When choosing between a technically advanced solution and a simpler solution
+based on the Simulation course, prefer the simpler course-aligned solution unless
+the assignment explicitly requires additional complexity.
 
-- a technically advanced solution, and
-- a simpler solution based on the Simulation course tools,
-
-choose the **simpler course-aligned solution**, unless the assignment explicitly requires more complexity.
-
-Do not invent new methods that were not taught or are not required.
-
-The model should demonstrate understanding of:
+The notebook should clearly demonstrate:
 
 - stochastic input modeling,
-- sampling from `U(0,1)`,
-- discrete-event simulation,
-- event calendars,
+- generation from `U(0,1)`,
+- inverse transform,
+- composition,
+- acceptance-rejection,
+- Box-Muller,
+- Bernoulli and Uniform sampling,
+- event-oriented discrete-event simulation,
 - queues and resources,
 - replications,
 - confidence intervals,
 - relative precision,
 - statistical comparison of alternatives,
-- final recommendation under uncertainty.
+- a recommendation under uncertainty.
+
+Do not use high-level NumPy or SciPy random distribution calls for simulation
+draws. SciPy may be used for fitting diagnostics, KS checks, and t critical
+values.
+
+Do not make the final model depend on advanced distributions or selection methods
+that were not taught in the course, including Gamma, Weibull, Lognormal,
+Triangular, Truncated Normal, or AIC-based model selection.
 
 ---
 
-## Allowed Course Distributions And Sampling Methods
+## Current Notebook Order
 
-Use only course-level distributions and methods unless the assignment explicitly gives a special formula.
+The active notebook currently follows this order:
 
-### Allowed distributions
+1. title and project objective,
+2. system description and assumptions,
+3. discrete-event model structure,
+4. event diagram,
+5. imports, report helpers, and Excel loading,
+6. input modeling,
+7. sampling algorithms,
+8. simulation classes,
+9. validation checks,
+10. current-state run,
+11. current-state bottlenecks,
+12. alternatives and budget,
+13. pilot and final replications,
+14. statistical comparison,
+15. managerial decision rule,
+16. final recommendation,
+17. limitations and summary.
 
-- Continuous Uniform `U(a,b)`
-- Discrete Uniform
-- Bernoulli
-- Discrete / categorical distributions
-- Exponential
-- Normal
-- Empirical distribution, if needed
-- Official piecewise densities from the assignment, when specified
+Preserve this executable order. Imports and `historical_data` must be defined
+before the fitting and `Sampler` cells.
 
-### Required sampling methods from `U(0,1)`
+---
 
-| Course method | Use in Queuechella |
-|---|---|
-| Direct `U(0,1)` | base random numbers, Uniform, Bernoulli |
-| Inverse Transform | Exponential interarrival times, PhotoStation official piecewise service time |
-| Composition | discrete choices such as body art, food, routing options |
-| Box-Muller | Normal sampling |
-| Acceptance-Rejection | DJStage stay duration |
-| Empirical / categorical sampling | only if needed and implemented through cumulative probabilities |
+## Current Class Structure
 
-Do not use high-level NumPy/SciPy random distribution calls for simulation draws. SciPy may be used for simple goodness-of-fit checks and statistical critical values.
+The simulation implementation is divided into separate cells:
 
-Avoid advanced fitting language and advanced distributions not taught in the course. In particular, do not make the final model depend on:
+1. `Sampler`
+2. `Event`
+3. `EventCalendar`
+4. `VisitorEntity`
+5. `Resource`
+6. `Stage`
+7. `StatsCollector`
+8. `SimulationConfig`
+9. `QueuechellaSimulation`
+
+Each simulation class has a short Hebrew Markdown explanation before its code
+cell. Do not merge the classes back into one large cell unless explicitly asked.
+
+`QueuechellaSimulation` owns the event loop, routing, queues, resources, stages,
+state changes, and statistics. `Sampler` owns the course-level random-generation
+methods. The simulation class may compose sampler methods when determining a
+complete activity duration.
+
+---
+
+## Current Input Modeling
+
+The workbook sheets used are:
 
 ```text
-Gamma, Weibull, Lognormal, Triangular, Truncated Normal, AIC-based model selection
+FriendsGroup_arrival_intervals
+MainStage_concert_duration
 ```
+
+Current final input models:
+
+| Input | Model | Parameter source | Simulation sampling |
+|---|---|---|---|
+| FriendsGroup interarrival time | Exponential | rate estimated from the Excel sample | Inverse Transform |
+| MainStage duration | Normal | mean and standard deviation estimated from the Excel sample | Box-Muller with a positive lower safeguard |
+
+The fitting cell currently displays Exponential and Normal diagnostics for both
+datasets, including log-likelihood and KS results. These diagnostics support the
+course-level choices; they do not form an advanced automatic model-selection
+pipeline.
 
 ---
 
-## Course Concepts That Should Guide Work
+## Current Sampler API
 
-From the attached course context, the most relevant concepts are:
+The active `Sampler` class uses static methods. Important methods are:
 
-### Simulation study process
+```text
+u()
+uniform(a, b)
+bernoulli(p)
+discrete_uniform(a, b)
+exponential_inverse(mean)
+discrete_choice_composition(weighted_items)
+normal_box_muller(mean, std)
+check_in_duration()
+check_out_duration()
+sample_friends_interarrival()
+couple_interarrival_time()
+single_interarrival_time()
+sample_mainstage_duration()
+destage_duration()
+dj_density(x)
+sample_dj_duration_acceptance_rejection()
+photo_density(x)
+sample_photo_duration()
+merch_checkout_duration()
+sample_battery()
+sample_charging_duration(battery)
+sample_bodyart_duration(art_type)
+bar_service_time()
+food_prep_duration(restaurant)
+meal_consumption_duration()
+sample_restaurant_choice()
+sample_bodyart_type()
+```
 
-1. define the objective,
-2. understand the system,
-3. define entities, resources, state variables and events,
-4. build event flow and pseudocode,
-5. implement,
-6. verify code,
-7. validate model assumptions,
-8. run replications,
-9. compute confidence intervals and precision,
-10. compare alternatives statistically,
-11. recommend under uncertainty.
+Use the names above when discussing or editing the current notebook. In
+particular, the current PhotoStation method is named `sample_photo_duration()`,
+not `sample_photo_station_service_time()`.
 
-### Discrete-event simulation
+---
 
-The model is a DES because state changes occur at discrete event times:
+## Course Concepts Mapping
 
-- arrivals,
-- service starts,
-- service completions,
-- queue abandonment,
-- show starts,
-- show ends,
-- DJ entry/exit,
-- day end,
-- simulation end.
+| Course method | Current use |
+|---|---|
+| Direct `U(0,1)` | base random number, Uniform, and Bernoulli logic |
+| Inverse Transform | Exponential times and official PhotoStation service time |
+| Composition | restaurant choice, body-art type, and other weighted discrete choices |
+| Box-Muller | Normal MainStage duration and battery percentage |
+| Acceptance-Rejection | DJStage stay duration |
+| Discrete Uniform | FriendsGroup size from 3 to 6 |
 
-Between events, the state is unchanged.
+---
 
-### Event calendar
+## Official PhotoStation Sampling
 
-Use a priority queue ordered by event time. Each event should contain:
+PhotoStation service time is sampled from the official piecewise density using
+inverse transform. The current method is:
+
+```python
+@staticmethod
+def sample_photo_duration():
+    u = Sampler.u()
+    if u < 0.25:
+        return math.sqrt(12.0 * u + 1.0)
+    if u < 0.875:
+        return (-5.0 + math.sqrt(281.0 + 640.0 * u)) / 8.0
+    return 8.0 * u - 4.0
+```
+
+`photo_density(x)` remains in the class as supporting/explanatory code, but the
+current PhotoStation sampler does not use acceptance-rejection.
+
+Validation should confirm:
+
+- every sample satisfies `1 <= X < 4`,
+- approximately 0.25 of samples are in `[1,2)`,
+- approximately 0.625 are in `[2,3)`,
+- approximately 0.125 are in `[3,4)`.
+
+Do not reintroduce the former `Uniform(3,7)` assumption or the old
+acceptance-rejection implementation for PhotoStation.
+
+---
+
+## Current DJStage Sampling
+
+DJStage stay duration uses acceptance-rejection on `[20,60]` with the official
+piecewise density implemented by `dj_density(x)`.
+
+The corrected density currently contains:
+
+```python
+if 20.0 <= x <= 40.0:
+    return (x - 20.0) / 600.0
+elif 40.0 < x <= 50.0:
+    return ((60.0 - x) / 600.0) + (1.0 / 30.0)
+elif 50.0 < x <= 60.0:
+    return (60.0 - x) / 600.0
+```
+
+The proposal distribution is Uniform on `[20,60]`, and the implementation uses
+`max_density = 1/15`.
+
+---
+
+## Current Event-Oriented Model
+
+The event calendar is a priority queue ordered by `time` and `sequence`. Each
+`Event` stores:
 
 ```text
 time
@@ -159,167 +292,20 @@ target
 payload
 ```
 
-### Five-step event-programming style
+The central event loop pops the next event, advances the simulation clock, and
+dispatches dynamically to `handle_<event_type.lower()>`.
 
-For each major event:
-
-1. identify the event trigger,
-2. update the simulation clock,
-3. update state variables,
-4. update statistical accumulators,
-5. schedule future events.
-
-### Verification and validation
-
-- Verification: code works as intended.
-- Validation: model assumptions are reasonable for the assignment.
-
-The notebook should keep validation checks visible and explain what they confirm.
-
----
-
-## Current Notebook Architecture
-
-The current notebook uses:
-
-- one central `Sampler` class for model-specific random sampling,
-- split code cells for simulation classes,
-- `QueuechellaSimulation` as the central event engine,
-- a calendar-driven event loop,
-- scenario definitions through `SimulationConfig`,
-- final statistical comparison from `final_results`.
-
-### Split class structure
-
-The "Current system implementation" section has been split into smaller notebook cells:
-
-1. `Event`
-2. `EventCalendar`
-3. `VisitorEntity`
-4. `Resource`
-5. `Stage`
-6. `StatsCollector`
-7. `SimulationConfig`
-8. `QueuechellaSimulation`
-
-Each class cell now has a short Hebrew Markdown explanation before it.
-
-Do not merge these back into one large code cell unless the user explicitly asks.
-
-### Important design rule
-
-All sampling formulas should live in `Sampler`.
-
-`QueuechellaSimulation` should consume the sampler and focus on:
-
-- event handling,
-- state changes,
-- routing,
-- queues,
-- resource/stage logic,
-- statistics.
-
----
-
-## Current Sampling Implementation
-
-The notebook currently centralizes sampling in `Sampler`.
-
-Important methods include:
-
-```text
-u()
-uniform(a, b)
-bernoulli(p)
-discrete_uniform(a, b)
-exponential_inverse(mean)
-normal_box_muller(mean, std)
-discrete_choice_composition(weighted_items)
-sample_friends_interarrival()
-sample_mainstage_duration()
-sample_dj_duration_acceptance_rejection()
-sample_battery()
-sample_charging_duration(battery)
-sample_photo_station_service_time()
-sample_entrance_service_time(entrance_auto_scan)
-sample_merch_service_time()
-sample_body_art_service_time()
-sample_food_service_time(activity)
-sample_side_stage_duration()
-```
-
-Do not move sampling formulas back into `QueuechellaSimulation`.
-
----
-
-## Current Input Modeling
-
-The notebook uses the workbook:
-
-```text
-samples_for_simulation.xlsx
-```
-
-Required sheets:
-
-1. `FriendsGroup_arrival_intervals`
-2. `MainStage_concert_duration`
-
-Current final input models:
-
-| Input | Final course-level model | Sampling method |
-|---|---|---|
-| FriendsGroup interarrival intervals | Exponential, mean from Excel sample | Inverse Transform |
-| MainStage concert duration | Normal, mean/std from Excel sample | Box-Muller with positive safeguard |
-
-Goodness-of-fit checks may be shown simply, but do not turn this into an advanced auto-fitting pipeline.
-
----
-
-## Official PhotoStation Sampling
-
-PhotoStation service time is no longer an assumption.
-
-It is sampled from the official assignment piecewise density using inverse transform.
-
-The current sampler is:
-
-```python
-def sample_photo_station_service_time(self):
-    u = self.u()
-    if u < 0.25:
-        return math.sqrt(12.0 * u + 1.0)
-    if u < 0.875:
-        return (-5.0 + math.sqrt(281.0 + 640.0 * u)) / 8.0
-    return 8.0 * u - 4.0
-```
-
-Validation currently samples 10,000 values and checks:
-
-- all values are in `[1,4)`,
-- interval proportions approximately match:
-  - `[1,2)`: `0.25`
-  - `[2,3)`: `0.625`
-  - `[3,4)`: `0.125`
-
-Never reintroduce the old `Uniform(3,7)` PhotoStation assumption.
-
----
-
-## Current Event And Visitor Logic
-
-Keep event strings in English exactly as implemented. Do not translate internal event names.
-
-Important event strings include:
+Current event strings include:
 
 ```text
 ARRIVAL
 ENTRANCE_SERVICE_START
 ENTRANCE_SERVICE_END
 ACTIVITY_DECISION
-QUEUE_ABANDON
 SERVICE_START
 SERVICE_END
+BREAK_END
+QUEUE_ABANDON
 MAIN_STAGE_SHOW_START
 MAIN_STAGE_SHOW_END
 SIDE_STAGE_SHOW_START
@@ -331,31 +317,104 @@ DAY_END
 SIMULATION_END
 ```
 
-### Visitor types
+`ENTRANCE_SERVICE_START` and `SERVICE_START` may be handled immediately by
+`try_start_next_resource()` through a constructed event rather than always being
+inserted into the future-event calendar.
 
-| Entity type | Key behavior |
-|---|---|
-| FriendsGroup | Day 1 only, size 3-6, lodging probability 0.7, one MainStage, one SideStage, one DJStage, then all stations |
-| Couple | Day 1 or 2, 10:00-16:00, no DJStage, alternates between performances and stations, may continue to Day 2 if satisfaction > 7 |
-| Single | Day 1 or 2, one-day visitor, Merch first, then 2 MainStage, 2 SideStage, 1 DJStage |
+MainStage and SideStage use separate start/end event strings. Do not replace them
+with generic `SHOW_START` or `SHOW_END` labels unless both the code and event
+diagram are intentionally refactored.
 
-### Day-end cleanup
+`SHOW_EARLY_LEAVE` currently applies to MainStage logic.
 
-At 20:00:
+The DJ flow is:
 
-- Singles must depart.
-- FriendsGroup may continue only if lodging.
-- Couples may continue only if Day 1 arrival and satisfaction > 7.
-- Non-eligible visitors are removed from queues, resources and stages.
-- Eligible visitors resume on Day 2 through the normal `ACTIVITY_DECISION` mechanism.
-
-Do not remove or weaken this cleanup.
+```text
+ACTIVITY_DECISION -> DJ_STAGE_ENTER -> DJ_STAGE_EXIT -> ACTIVITY_DECISION
+```
 
 ---
 
-## Current Alternatives
+## Current Food Event Representation
 
-Current scenarios must remain named exactly:
+This section is important because the current code and a proposed future event
+diagram are not yet identical.
+
+The current notebook does not define these event strings:
+
+```text
+FOOD_ORDER_END
+FOOD_PREP_END
+FOOD_EATING_END
+```
+
+Food currently uses `SERVICE_END` and a `phase` value in the payload.
+
+Current behavior:
+
+1. `sample_service_duration()` combines cashier/bar time and food-preparation
+   time for the selected restaurant.
+2. `handle_service_start()` schedules `SERVICE_END` with `phase="service"`.
+3. At that `SERVICE_END`, the food resource is released, the next queued visitor
+   may begin service, payment and food satisfaction are processed, and an eating
+   duration is sampled.
+4. A second `SERVICE_END` is scheduled with `phase="eat"`.
+5. At the eating completion, `complete_activity(entity, "Food")` continues to
+   the existing activity-decision mechanism.
+
+Therefore, the current implemented flow is approximately:
+
+```text
+ACTIVITY_DECISION
+-> SERVICE_START
+-> SERVICE_END (cashier + preparation completed)
+-> SERVICE_END (phase="eat")
+-> ACTIVITY_DECISION
+```
+
+Food queues currently do not schedule queue-abandonment events.
+
+A possible future course-oriented refactor is to introduce separate real events
+`FOOD_ORDER_END`, `FOOD_PREP_END`, and `FOOD_EATING_END`. That refactor has not
+yet been implemented. If it is implemented, update the code, validation, event
+diagram, and this context together.
+
+---
+
+## Visitor Rules
+
+| Entity | Current modeled behavior |
+|---|---|
+| FriendsGroup | arrives on Day 1 between 09:00 and 13:00; size is discrete Uniform 3-6; lodging probability 0.7; aims for one MainStage, one SideStage, one DJStage, then all stations |
+| Couple | arrives on either day between 10:00 and 16:00; group size 2; does not visit DJStage; alternates between performances and stations; a qualified Day-1 couple may continue to Day 2 |
+| Single | arrives on either day between 09:00 and 16:00; group size 1; visits Merch first; aims for two MainStage, two SideStage, and one DJStage visit |
+
+Groups and couples move as one simulation entity, while satisfaction and revenue
+are calculated at guest level where the code specifies.
+
+---
+
+## Day-End Rules
+
+At 20:00 the simulation cleans regular resource queues, stage queues, active
+resource users, and stage attendees.
+
+- Singles must depart.
+- FriendsGroup may continue only when lodging is true.
+- Couples may continue only after Day 1 when they arrived on Day 1 and average
+  satisfaction is greater than 7.
+- Non-eligible visitors are removed from all active locations and departed.
+- Eligible visitors have transient location state cleared and receive a normal
+  `ACTIVITY_DECISION` event at the next day start.
+
+`DAY_END` leads to next-day activity only for eligible visitors. The simulation
+terminates at `SIMULATION_END` after the second operating day.
+
+---
+
+## Current Scenarios And Budget
+
+Scenario names must remain exactly:
 
 ```text
 Current
@@ -364,96 +423,25 @@ Combo B
 Combo C
 ```
 
-Current combinations:
-
-| Scenario | Cost | Main changes |
-|---|---:|---|
-| Current | 0 | baseline |
-| Combo A | 850,000 | better kitchen staff, extra photo/body art capacity, visitor benefit |
-| Combo B | 950,000 | expanded stage capacity, popular MainStage bands |
-| Combo C | 950,000 | automatic ticket scanning, advertising, extra photo/body art capacity |
-
-Budget constraint:
+Budget limit:
 
 ```text
 1,000,000 NIS
 ```
 
-Alternatives should be implemented only through `SimulationConfig` parameters unless the user explicitly asks for a modeling change.
+| Scenario | Cost | Current parameter changes |
+|---|---:|---|
+| Current | 0 | baseline |
+| Combo A | 850,000 | lunch participation 0.85; food dissatisfaction 0.10; PhotoStation capacity 4; BodyArt capacity 3; initial satisfaction 6.5 |
+| Combo B | 950,000 | all stage capacities +30%; MainStage genre weight 4; band-shirt purchase probability increases through existing purchase logic |
+| Combo C | 950,000 | automatic entrance scan; arrivals x1.2; PhotoStation capacity 4; BodyArt capacity 3 |
+
+Scenario effects should remain parameter-driven through `SimulationConfig` unless
+the assignment or user explicitly requests a modeling change.
 
 ---
 
-## Current Statistical Analysis
-
-The notebook uses:
-
-- pilot replications,
-- required-n calculation,
-- final replications,
-- final summary tables,
-- paired differences versus Current,
-- final recommendation from `final_results`.
-
-### Confidence intervals and precision
-
-Use t-based confidence intervals for finite replications.
-
-Relative precision target:
-
-```text
-0.1
-```
-
-Overall confidence level:
-
-```text
-0.9
-```
-
-### Alternative comparisons
-
-The final paired comparison uses matched replications/seeds:
-
-```text
-d_j = metric_alternative_j - metric_current_j
-```
-
-There are:
-
-```text
-3 alternatives × 3 primary metrics = 9 comparisons
-```
-
-Use Bonferroni:
-
-```text
-alpha_i = 0.10 / 9
-```
-
-For each metric/alternative report:
-
-- `n_pairs`
-- `paired_mean_diff`
-- `paired_sd_diff`
-- `df`
-- `alpha_i`
-- `t_crit`
-- `margin_error`
-- `ci_low`
-- `ci_high`
-- `significant_bonferroni`
-
-Display significance in Hebrew as:
-
-```text
-מובהק לאחר Bonferroni = כן / לא
-```
-
-If matching by replication/seed is ever broken, do not silently use paired t. Use Welch comparison or redesign CRN.
-
----
-
-## Primary And Secondary Metrics
+## Current Statistical Workflow
 
 Primary metrics:
 
@@ -471,92 +459,153 @@ total_abandonments
 total_revenue
 ```
 
-Recommendation currently separates:
+Current workflow:
 
-1. best visitor-experience alternative,
-2. best waiting-time alternative,
-3. best short-term profit option.
+1. Run `PILOT_REPLICATIONS = 8` with common scenario seeds.
+2. Estimate the required number of replications using t-based confidence
+   intervals.
+3. Select the maximum required n across scenarios and primary metrics.
+4. Run all scenarios again to create `final_results`.
+5. If any primary metric has relative precision above 0.1, increase n and rerun
+   until the target is met.
+6. Build final summaries and paired differences versus Current.
+7. Generate the recommendation from `final_results`, not pilot results.
 
-The recommendation must remain based on `final_results`, not pilot results.
+Parameters:
+
+```text
+confidence level = 0.90
+relative precision target = 0.10
+overall alpha = 0.10
+```
+
+Paired comparisons use matched replication numbers/seeds. There are 3
+alternatives x 3 primary metrics = 9 simultaneous comparisons, so:
+
+```text
+alpha_i = 0.10 / 9
+```
+
+Each paired-comparison row includes:
+
+```text
+n_pairs
+paired_mean_diff
+paired_sd_diff
+df
+alpha_i
+t_crit
+margin_error
+ci_low
+ci_high
+significant_bonferroni
+```
+
+If common random-number pairing is broken, do not silently retain the paired
+comparison.
 
 ---
 
-## Report Formatting Direction
+## Current Recommendation Logic
 
-Use clean academic Colab formatting.
+The recommendation cell calls:
 
-Current report language/style:
+```python
+final_metric_records(final_results)
+```
 
-- Hebrew explanations,
-- RTL Markdown/HTML,
-- compact tables,
-- course-report tone,
-- no retro/terminal/product-dashboard style.
+It separately identifies:
 
-Internal code names stay English.
+1. the best visitor-experience alternative,
+2. the best waiting-time alternative,
+3. the best short-term net-profit option.
 
-Do not translate:
-
-- class names,
-- function names,
-- dictionary keys,
-- DataFrame columns used by code,
-- scenario names,
-- event strings.
-
-Display labels may be Hebrew.
+Do not base the final recommendation on `pilot_results`.
 
 ---
 
-## Validation Expectations
+## Current Validation Coverage
 
-Keep validation tests visible and runnable.
+The validation section currently checks:
 
-Current validation covers:
-
-- event calendar ordering,
-- sampler range checks,
-- PhotoStation inverse-transform checks,
-- day-end cleanup,
-- arrival windows,
-- capacity sanity,
+- nondecreasing event-calendar order,
+- DJ acceptance-rejection support,
+- finite Box-Muller output,
+- PhotoStation support and interval proportions,
+- day-end queue/resource/stage cleanup,
+- FriendsGroup, Couple, and Single arrival windows,
+- FriendsGroup size,
 - satisfaction bounds,
-- itinerary rules,
-- budget constraints,
-- smoke run event log.
+- resource and stage capacity sanity,
+- itinerary limits,
+- no Couple DJStage completion,
+- scenario budget compliance,
+- positive visitors and nonnegative waiting time in a smoke run.
 
-After any notebook code change:
+After any simulation-code change:
 
-1. compile all code cells,
+1. compile every code cell,
 2. run the notebook top-to-bottom,
-3. confirm validation checks pass,
-4. confirm `final_results` exists,
-5. confirm recommendation uses `final_results`.
+3. confirm no saved error outputs remain,
+4. confirm validation checks pass,
+5. confirm `final_results` exists,
+6. confirm final precision reaches 0.1,
+7. confirm the recommendation still uses `final_results`.
 
 ---
 
-## Security Rules
+## Report Formatting
 
-Do not store secrets, API keys, tokens or credentials in notebooks, frontend files, public config files or committed code.
+Use clean academic Colab formatting:
 
-If credentials are ever needed, use local environment variables or GitHub credential manager, not hardcoded values.
+- Hebrew RTL explanations,
+- compact tables and plots,
+- formulas where course justification is needed,
+- no retro-terminal or product-dashboard language.
+
+Code comments must remain in English.
+
+Do not translate code-dependent names such as class names, function names,
+dictionary keys, metric names, scenario names, or event strings. Hebrew labels
+may be created for display-only tables.
 
 ---
 
-## Working Style For Future Changes
+## Git And Merge Safety
 
-Before changing code:
+Do not assume the current branch from this file. Check `git status` before work.
 
-1. inspect the current notebook,
-2. identify the exact cell(s),
-3. preserve internal names and event strings,
-4. make the smallest targeted change,
-5. run the notebook when code behavior changes.
+The notebook has received merged contributions from multiple branches. Preserve
+the latest merged `main` content together with the corrected PhotoStation and
+DJStage samplers.
 
-Prefer notebook-structure edits through JSON-aware scripts when splitting or inserting cells.
+Notebook merge conflicts should not be resolved by blindly accepting an entire
+side. Compare notebook cells, preserve substantive changes, restore executable
+cell order, run top-to-bottom, and only then stage the resolved notebook.
 
-For text-only report changes, keep Hebrew RTL style consistent.
+Do not commit `.venv`, temporary debug files, old notebook drafts, or secrets.
 
-For code comments, use English only.
+---
 
-Do not rebuild the notebook from scratch unless the user explicitly asks.
+## Security
+
+Do not store API keys, tokens, passwords, or credentials in notebooks or tracked
+project files. Use environment variables or the operating system credential
+manager if credentials are ever required.
+
+---
+
+## Working Procedure For Future Changes
+
+Before editing:
+
+1. inspect the active notebook and `git status`,
+2. identify the exact affected cells,
+3. distinguish current implementation from proposed future design,
+4. preserve internal identifiers and event strings unless the change explicitly
+   requires updating them,
+5. make the smallest targeted change,
+6. update diagrams and context when event logic changes,
+7. run the notebook and verify statistical outputs after behavioral changes.
+
+Do not rebuild the notebook from scratch unless explicitly requested.
