@@ -302,12 +302,11 @@ ARRIVAL
 ENTRANCE_SERVICE_END
 ACTIVITY_DECISION
 SERVICE_END
-BREAK_END
+BODYART_BREAK_END
 QUEUE_ABANDON
 SHOW_START
 SHOW_END
 SHOW_EARLY_LEAVE
-DJ_STAGE_ENTER
 DJ_STAGE_EXIT
 FOOD_ORDER_END
 FOOD_PREP_END
@@ -321,6 +320,11 @@ not future-event-calendar event types. `try_start_next_resource()` calls
 `start_entrance_service()` or `start_resource_service()` directly and schedules
 the corresponding completion event.
 
+`BODYART_BREAK_END` is a dedicated resource event. Every tenth completed
+BodyArt service starts a 15-minute artist break; the artist remains unavailable
+until this future event releases the blocked capacity and attempts to start the
+next queued service.
+
 MainStage and SideStage share the generic `SHOW_START` and `SHOW_END` event
 strings. The relevant stage name is carried in the event `target`.
 
@@ -329,8 +333,15 @@ strings. The relevant stage name is carried in the event `target`.
 The DJ flow is:
 
 ```text
-ACTIVITY_DECISION -> DJ_STAGE_ENTER -> DJ_STAGE_EXIT -> ACTIVITY_DECISION
+ACTIVITY_DECISION -> DJ_STAGE_EXIT -> ACTIVITY_DECISION
+DJ_STAGE_EXIT -> DJ_STAGE_EXIT
 ```
+
+DJStage admission is an immediate helper operation rather than a future event.
+When the entity's full `group_size` fits, `start_dj_visit()` atomically adds that
+guest count to `occupancy_guests` and schedules `DJ_STAGE_EXIT`. An exit may
+immediately admit a queued entity and therefore schedule another future
+`DJ_STAGE_EXIT`.
 
 ---
 
@@ -340,7 +351,7 @@ Food uses three explicit completion events rather than `SERVICE_END` payload
 phases. The current flow is:
 
 ```text
-food routing
+ACTIVITY_DECISION
 -> immediate cashier-service start
 -> FOOD_ORDER_END
 -> FOOD_PREP_END
@@ -354,6 +365,16 @@ processed, and food preparation is scheduled. The visitor remains in
 `IN_SERVICE` state during preparation and eating, as in the previous
 implementation. Food queues do not schedule queue-abandonment events.
 
+Lunch eligibility is carried into `ACTIVITY_DECISION` only after completing a
+regular station, a complete MainStage or SideStage performance, or DJStage.
+Entrance completion, queue abandonment, early show departure, food completion,
+and next-day startup schedule an ineligible activity decision. Each simulation
+entity receives at most one shared Bernoulli lunch decision per festival day,
+tracked in `lunch_decision_days`; a Couple or FriendsGroup is never split into
+individual sub-visitors for this decision. The day is recorded before sampling,
+so rejection cannot lead to repeated attempts. Eligible overnight entities may
+receive a new decision on Day 2.
+
 ---
 
 ## Visitor Rules
@@ -361,11 +382,17 @@ implementation. Food queues do not schedule queue-abandonment events.
 | Entity | Current modeled behavior |
 |---|---|
 | FriendsGroup | arrives on Day 1 between 09:00 and 13:00; size is discrete Uniform 3-6; lodging probability 0.7; aims for one MainStage, one SideStage, one DJStage, then all stations |
-| Couple | arrives on either day between 10:00 and 16:00; group size 2; does not visit DJStage; alternates between performances and stations; a qualified Day-1 couple may continue to Day 2 |
+| Couple | arrives on either day between 10:00 and 16:00; group size 2; does not visit DJStage; alternates between performances and stations; stops after five completed non-food activities; a qualified Day-1 couple may continue to Day 2 |
 | Single | arrives on either day between 09:00 and 16:00; group size 1; visits Merch first; aims for two MainStage, two SideStage, and one DJStage visit |
 
 Groups and couples move as one simulation entity, while satisfaction and revenue
 are calculated at guest level where the code specifies.
+
+Completed non-food activities are counted once in `completed_counts`. Food does
+not count toward the Couple five-activity limit and does not change the previous
+performance/station alternation state. An abandoned regular station continues
+to count as one completed attempt and sets the last activity kind to `station`,
+so the next choice preserves the required alternation.
 
 ---
 
@@ -407,9 +434,9 @@ Budget limit:
 | Scenario | Cost | Current parameter changes |
 |---|---:|---|
 | Current | 0 | baseline |
-| Combo A | 850,000 | lunch participation 0.85; food dissatisfaction 0.10; PhotoStation capacity 4; BodyArt capacity 3; initial satisfaction 6.5 |
-| Combo B | 950,000 | all stage capacities +30%; MainStage genre weight 4; band-shirt purchase probability increases through existing purchase logic |
-| Combo C | 950,000 | automatic entrance scan; arrivals x1.2; PhotoStation capacity 4; BodyArt capacity 3 |
+| Combo A | 950,000 | automatic entrance scan; PhotoStation capacity 4; BodyArt capacity 3; initial satisfaction 6.5 |
+| Combo B | 900,000 | automatic entrance scan; MainStage genre weight 4 |
+| Combo C | 850,000 | arrivals x1.2; PhotoStation capacity 4; BodyArt capacity 3; MainStage genre weight 4; initial satisfaction 6.5 |
 
 Scenario effects should remain parameter-driven through `SimulationConfig` unless
 the assignment or user explicitly requests a modeling change.
@@ -508,6 +535,13 @@ The validation section currently checks:
 - finite Box-Muller output,
 - PhotoStation support and interval proportions,
 - distinct food order, preparation, and eating events with immediate cashier reuse,
+- one shared lunch decision per entity per day and a fresh eligible Day-2 decision,
+- lunch eligibility only after completed stations and performances,
+- Couple completion counting against exactly five non-food activities,
+- food preserving the Couple's previous non-food alternation state,
+- abandoned regular stations counting once and updating Couple alternation,
+- dedicated `BODYART_BREAK_END` scheduling and artist release,
+- guest-sized immediate DJStage admission, atomic queue refill, and day-end cleanup,
 - day-end queue/resource/stage cleanup,
 - FriendsGroup, Couple, and Single arrival windows,
 - FriendsGroup size,
