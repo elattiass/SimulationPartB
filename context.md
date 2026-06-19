@@ -308,7 +308,8 @@ SHOW_START
 SHOW_END
 SHOW_EARLY_LEAVE
 DJ_STAGE_EXIT
-FOOD_READY
+FOOD_ORDER_END
+FOOD_PREP_END
 FOOD_EATING_END
 DAY_END
 SIMULATION_END
@@ -346,23 +347,18 @@ immediately admit a queued entity and therefore schedule another future
 
 ## Current Food Event Representation
 
-Food ordering and preparation are modeled as one combined restaurant service
-ending with `FOOD_READY`. Eating remains a separate delay. The current flow is:
+Food uses three explicit completion events rather than `SERVICE_END` payload phases. The current flow is:
 
 ```text
 ACTIVITY_DECISION
--> immediate restaurant-service start
--> FOOD_READY
+-> immediate cashier-service start
+-> FOOD_ORDER_END
+-> FOOD_PREP_END
 -> FOOD_EATING_END
 -> ACTIVITY_DECISION
 ```
 
-The combined service duration is the sampled ordering/payment time plus the
-sampled preparation time. At `FOOD_READY`, the restaurant resource is released,
-the next queued visitor may begin the combined service, payment and food
-satisfaction are processed, and `FOOD_EATING_END` is scheduled. The visitor
-remains in `IN_SERVICE` state while eating. Food queues do not schedule
-queue-abandonment events.
+At `FOOD_ORDER_END`, the restaurant cashier is released and the next queued visitor may begin ordering immediately. Payment and food satisfaction are then processed, and food preparation is scheduled. The visitor remains in `IN_SERVICE` state during preparation and eating. Food queues do not schedule queue-abandonment events.
 
 Lunch eligibility is carried into `ACTIVITY_DECISION` only after completing a
 regular station, a complete MainStage or SideStage performance, or DJStage.
@@ -533,7 +529,7 @@ The validation section currently checks:
 - DJ acceptance-rejection support,
 - finite Box-Muller output,
 - PhotoStation support and interval proportions,
-- combined `FOOD_READY` ordering/preparation service, resource reuse at ready time, and separate eating completion,
+- distinct food order, preparation, and eating events with immediate cashier reuse,
 - one shared lunch decision per entity per day and a fresh eligible Day-2 decision,
 - lunch eligibility only after completed stations and performances,
 - Couple completion counting against exactly five non-food activities,
