@@ -347,8 +347,7 @@ immediately admit a queued entity and therefore schedule another future
 
 ## Current Food Event Representation
 
-Food uses three explicit completion events rather than `SERVICE_END` payload
-phases. The current flow is:
+Food uses three explicit completion events rather than `SERVICE_END` payload phases. The current flow is:
 
 ```text
 ACTIVITY_DECISION
@@ -359,11 +358,7 @@ ACTIVITY_DECISION
 -> ACTIVITY_DECISION
 ```
 
-At `FOOD_ORDER_END`, the restaurant cashier is released and the next queued
-visitor may begin ordering immediately. Payment and food satisfaction are then
-processed, and food preparation is scheduled. The visitor remains in
-`IN_SERVICE` state during preparation and eating, as in the previous
-implementation. Food queues do not schedule queue-abandonment events.
+At `FOOD_ORDER_END`, the restaurant cashier is released and the next queued visitor may begin ordering immediately. Payment and food satisfaction are then processed, and food preparation is scheduled. The visitor remains in `IN_SERVICE` state during preparation and eating. Food queues do not schedule queue-abandonment events.
 
 Lunch eligibility is carried into `ACTIVITY_DECISION` only after completing a
 regular station, a complete MainStage or SideStage performance, or DJStage.
