@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queuechella – סיכום סימולציה והמלצות</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --current: #7f8c8d;
+  --combo-a: #3b82f6;
+  --combo-b: #10b981;
+  --combo-c: #ef4444;
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card2: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent: #818cf8;
+  --gold: #fbbf24;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.presentation {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+  overflow-y: auto;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+/* ── Navigation ── */
+.nav-controls {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 100;
+  background: rgba(30,41,59,0.85);
+  backdrop-filter: blur(12px);
+  padding: 10px 24px;
+  border-radius: 40px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-primary);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.nav-btn:disabled:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+
+.slide-counter {
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--combo-a));
+  transition: width 0.4s ease;
+  z-index: 100;
+}
+
+/* ── Slide 1: Title ── */
+.title-slide {
+  background: radial-gradient(ellipse at 30% 50%, rgba(99,102,241,0.15), transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(236,72,153,0.1), transparent 50%),
+              var(--bg-dark);
+  text-align: center;
+}
+.title-slide .emoji-big { font-size: 72px; margin-bottom: 20px; }
+.title-slide h1 {
+  font-size: 56px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+.title-slide .subtitle {
+  font-size: 22px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  max-width: 700px;
+  line-height: 1.6;
+}
+.title-slide .meta {
+  margin-top: 40px;
+  display: flex;
+  gap: 40px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.title-slide .meta span { display: flex; align-items: center; gap: 8px; }
+
+/* ── Slide 2: System Overview ── */
+.overview-slide { background: var(--bg-dark); }
+.overview-slide h2 {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 40px;
+  text-align: center;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  width: 100%;
+}
+.overview-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.overview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.overview-card .icon { font-size: 36px; margin-bottom: 12px; }
+.overview-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+.overview-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ── Slide 3: Alternatives ── */
+.alt-slide { background: var(--bg-dark); }
+.alt-slide h2 { font-size: 36px; font-weight: 800; margin-bottom: 12px; text-align: center; }
+.alt-slide .budget-badge {
+  background: linear-gradient(135deg, var(--gold), #f59e0b);
+  color: #1e293b;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  display: inline-block;
+}
+.alt-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+}
+.alt-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px 20px;
+  border-top: 4px solid;
+  position: relative;
+  transition: transform 0.2s;
+}
+.alt-card:hover { transform: translateY(-4px); }
+.alt-card.current { border-top-color: var(--current); }
+.alt-card.combo-a { border-top-color: var(--combo-a); }
+.alt-card.combo-b { border-top-color: var(--combo-b); }
+.alt-card.combo-c { border-top-color: var(--combo-c); }
+
+.alt-card .card-name {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.alt-card .card-cost {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.alt-card .card-focus {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.alt-card .card-details {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Slide 4: Results comparison ── */
+.results-slide { background: var(--bg-dark); }
+.results-slide h2 { font-size: 36px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+.metric-column {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  border-top: 4px solid;
+}
+.metric-column.current { border-top-color: var(--current); }
+.metric-column.combo-a { border-top-color: var(--combo-a); }
+.metric-column.combo-b { border-top-color: var(--combo-b); }
+.metric-column.combo-c { border-top-color: var(--combo-c); }
+
+.metric-column .scenario-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.metric-item {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+}
+.metric-item .metric-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.metric-item .metric-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+.metric-item .metric-value.best {
+  color: var(--gold);
+}
+
+/* ── Slide 5: Charts ── */
+.charts-slide { background: var(--bg-dark); }
+.charts-slide h2 { font-size: 36px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  max-width: 1200px;
+  width: 100%;
+}
+.chart-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 24px;
+}
+.chart-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--accent);
+}
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bar-label {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 70px;
+  text-align: left;
+}
+.bar-track {
+  flex: 1;
+  height: 32px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 10px;
+  padding-left: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  min-width: fit-content;
+}
+
+/* ── Slide 6: Recommendations ── */
+.rec-slide {
+  background: radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.1), transparent 60%), var(--bg-dark);
+}
+.rec-slide h2 { font-size: 36px; font-weight: 800; margin-bottom: 32px; text-align: center; }
+.rec-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+.rec-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 28px 24px;
+  border: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.rec-card .rec-icon { font-size: 40px; margin-bottom: 12px; }
+.rec-card .rec-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.rec-card .rec-scenario {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.rec-card .rec-scenario.combo-a { color: var(--combo-a); }
+.rec-card .rec-scenario.combo-b { color: var(--combo-b); }
+.rec-card .rec-scenario.combo-c { color: var(--combo-c); }
+.rec-card .rec-reason {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.rec-card .rec-stat {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--gold);
+}
+.rec-card .rec-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Slide 7: Summary ── */
+.summary-slide {
+  background: radial-gradient(ellipse at 60% 40%, rgba(251,191,36,0.08), transparent 50%), var(--bg-dark);
+  text-align: center;
+}
+.summary-slide h2 {
+  font-size: 40px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--gold), #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.summary-points {
+  max-width: 800px;
+  text-align: right;
+}
+.summary-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  padding: 20px 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.summary-point .sp-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.summary-point .sp-text { font-size: 16px; line-height: 1.7; color: var(--text-secondary); }
+.summary-point .sp-text strong { color: var(--text-primary); font-weight: 700; }
+
+.summary-footer {
+  margin-top: 36px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+/* ── Keyboard hint ── */
+.key-hint {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  z-index: 100;
+}
+
+@media (max-width: 900px) {
+  .slide { padding: 30px 24px; }
+  .overview-grid, .alt-cards, .metrics-grid, .charts-container, .rec-cards {
+    grid-template-columns: 1fr;
+  }
+  .title-slide h1 { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="presentation" id="presentation">
+
+  <!-- ═══════════ SLIDE 1: Title ═══════════ -->
+  <div class="slide title-slide active" data-index="0">
+    <div class="emoji-big">🎵</div>
+    <h1>פסטיבל Queuechella</h1>
+    <p class="subtitle">
+      סימולציה בדידה מונחית-אירועים · השוואה עסקית בין חלופות · המלצות מבוססות נתונים
+    </p>
+    <div class="meta">
+      <span>📊 סימולציה בדידה</span>
+      <span>🔁 8 רפליקציות</span>
+      <span>💰 תקציב ₪1,000,000</span>
+      <span>📈 4 תרחישים</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 2: System Overview ═══════════ -->
+  <div class="slide overview-slide" data-index="1">
+    <h2>🏟️ סקירת המערכת</h2>
+    <div class="overview-grid">
+      <div class="overview-card">
+        <div class="icon">🚪</div>
+        <h3>כניסה וביטחון</h3>
+        <p>מבקרים מגיעים בקבוצות חברים, עוברים סריקה ביטחונית ובדיקת כרטיסים. צוואר בקבוק מרכזי במצב הקיים.</p>
+      </div>
+      <div class="overview-card">
+        <div class="icon">🎤</div>
+        <h3>במות והופעות</h3>
+        <p>שלוש במות: MainStage, SideStage ו-DJ Stage עם קיבולות שונות, מערכת הופעות קבועה ותורים.</p>
+      </div>
+      <div class="overview-card">
+        <div class="icon">📸</div>
+        <h3>עמדות שירות</h3>
+        <p>עמדות צילום, ציורים, מזון ומרצ'נדייז. מבקרים בוחרים פעילויות באופן הסתברותי ועלולים לנטוש תור ארוך.</p>
+      </div>
+      <div class="overview-card">
+        <div class="icon">🔄</div>
+        <h3>מודל בדיד</h3>
+        <p>שעון סימולציה, רשימת אירועים ממוינת, תורים FIFO, דגימה מתפלגויות מותאמות מנתוני אמת.</p>
+      </div>
+      <div class="overview-card">
+        <div class="icon">📐</div>
+        <h3>מתודולוגיה סטטיסטית</h3>
+        <p>רפליקציות עצמאיות, רווחי סמך ברמת 90%, דיוק יחסי ≤10%, השוואה מזווגת עם תיקון Bonferroni.</p>
+      </div>
+      <div class="overview-card">
+        <div class="icon">🎯</div>
+        <h3>מטרת הפרויקט</h3>
+        <p>מציאת שילוב השקעות אופטימלי במסגרת תקציב של ₪1,000,000 לשיפור חוויית המבקרים והרווחיות.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 3: Alternatives ═══════════ -->
+  <div class="slide alt-slide" data-index="2">
+    <h2>🔀 ארבע החלופות שנבדקו</h2>
+    <div class="budget-badge">💰 אילוץ תקציב: ₪1,000,000</div>
+    <div class="alt-cards">
+      <div class="alt-card current">
+        <div class="card-name" style="color: var(--current);">Current</div>
+        <div class="card-cost">עלות: ₪0</div>
+        <div class="card-focus">📌 בסיס להשוואה</div>
+        <div class="card-details">תפעול בסיס ללא השקעה. תרחיש ייחוס שכל החלופות נמדדות כנגדו.</div>
+      </div>
+      <div class="alt-card combo-a">
+        <div class="card-name" style="color: var(--combo-a);">Combo A</div>
+        <div class="card-cost">עלות: ₪950,000</div>
+        <div class="card-focus">📌 חוויית לקוח ושביעות רצון</div>
+        <div class="card-details">כניסה אוטומטית, עמדות שירות משופרות (צילום וציורים) והטבת מבקרים. פתרון צוואר הבקבוק בכניסה.</div>
+      </div>
+      <div class="alt-card combo-b">
+        <div class="card-name" style="color: var(--combo-b);">Combo B</div>
+        <div class="card-cost">עלות: ₪900,000</div>
+        <div class="card-focus">📌 במות והופעות מוזיקה</div>
+        <div class="card-details">כניסה אוטומטית והשקעה בלהקות מיינסטרים. משיכת קהל לבמות הגדולות להגדלת הכנסות.</div>
+      </div>
+      <div class="alt-card combo-c">
+        <div class="card-name" style="color: var(--combo-c);">Combo C</div>
+        <div class="card-cost">עלות: ₪850,000</div>
+        <div class="card-focus">📌 זרימת קהל והגדלת הכנסות</div>
+        <div class="card-details">פרסום (הגעות ×1.2), עמדות משופרות, להקות מיינסטרים והטבת מבקרים. הגדלת מבקרים עם תמיכה בחוויה.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 4: Results Table ═══════════ -->
+  <div class="slide results-slide" data-index="3">
+    <h2>📊 תוצאות סופיות – 8 רפליקציות</h2>
+    <div class="metrics-grid">
+      <div class="metric-column current">
+        <div class="scenario-name" style="color: var(--current);">Current</div>
+        <div class="metric-item">
+          <div class="metric-label">שביעות רצון</div>
+          <div class="metric-value">5.422</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">זמן המתנה (דקות)</div>
+          <div class="metric-value">29.24</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">רווח (₪)</div>
+          <div class="metric-value">2,018,369</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">נטישות</div>
+          <div class="metric-value">1,134.6</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">עלות השקעה</div>
+          <div class="metric-value">₪0</div>
+        </div>
+      </div>
+
+      <div class="metric-column combo-a">
+        <div class="scenario-name" style="color: var(--combo-a);">Combo A</div>
+        <div class="metric-item">
+          <div class="metric-label">שביעות רצון</div>
+          <div class="metric-value">6.815</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">זמן המתנה (דקות)</div>
+          <div class="metric-value best">17.86 🏆</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">רווח (₪)</div>
+          <div class="metric-value">2,367,741</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">נטישות</div>
+          <div class="metric-value">1,272.1</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">עלות השקעה</div>
+          <div class="metric-value">₪950,000</div>
+        </div>
+      </div>
+
+      <div class="metric-column combo-b">
+        <div class="scenario-name" style="color: var(--combo-b);">Combo B</div>
+        <div class="metric-item">
+          <div class="metric-label">שביעות רצון</div>
+          <div class="metric-value">5.553</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">זמן המתנה (דקות)</div>
+          <div class="metric-value">18.33</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">רווח (₪)</div>
+          <div class="metric-value best">2,620,036 🏆</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">נטישות</div>
+          <div class="metric-value">1,378.5</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">עלות השקעה</div>
+          <div class="metric-value">₪900,000</div>
+        </div>
+      </div>
+
+      <div class="metric-column combo-c">
+        <div class="scenario-name" style="color: var(--combo-c);">Combo C</div>
+        <div class="metric-item">
+          <div class="metric-label">שביעות רצון</div>
+          <div class="metric-value best">6.926 🏆</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">זמן המתנה (דקות)</div>
+          <div class="metric-value">33.10</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">רווח (₪)</div>
+          <div class="metric-value">2,340,701</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">נטישות</div>
+          <div class="metric-value best">1,022.2 🏆</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">עלות השקעה</div>
+          <div class="metric-value">₪850,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 5: Bar Charts ═══════════ -->
+  <div class="slide charts-slide" data-index="4">
+    <h2>📈 השוואה ויזואלית</h2>
+    <div class="charts-container">
+
+      <!-- Satisfaction Chart -->
+      <div class="chart-card">
+        <h3>שביעות רצון ממוצעת (0–10)</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--current)">Current</span>
+            <div class="bar-track"><div class="bar-fill" style="width:78.3%;background:var(--current)">5.422</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-a)">Combo A</span>
+            <div class="bar-track"><div class="bar-fill" style="width:98.4%;background:var(--combo-a)">6.815</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-b)">Combo B</span>
+            <div class="bar-track"><div class="bar-fill" style="width:80.2%;background:var(--combo-b)">5.553</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-c)">Combo C</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--combo-c)">6.926 🏆</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wait Time Chart -->
+      <div class="chart-card">
+        <h3>זמן המתנה ממוצע (דקות)</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--current)">Current</span>
+            <div class="bar-track"><div class="bar-fill" style="width:88.4%;background:var(--current)">29.24</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-a)">Combo A</span>
+            <div class="bar-track"><div class="bar-fill" style="width:54%;background:var(--combo-a)">17.86 🏆</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-b)">Combo B</span>
+            <div class="bar-track"><div class="bar-fill" style="width:55.4%;background:var(--combo-b)">18.33</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-c)">Combo C</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--combo-c)">33.10</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profit Chart -->
+      <div class="chart-card">
+        <h3>רווח בסימולציה (₪)</h3>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--current)">Current</span>
+            <div class="bar-track"><div class="bar-fill" style="width:77%;background:var(--current)">2,018,369</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-a)">Combo A</span>
+            <div class="bar-track"><div class="bar-fill" style="width:90.4%;background:var(--combo-a)">2,367,741</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-b)">Combo B</span>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--combo-b)">2,620,036 🏆</div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label" style="color:var(--combo-c)">Combo C</span>
+            <div class="bar-track"><div class="bar-fill" style="width:89.3%;background:var(--combo-c)">2,340,701</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 6: Recommendations ═══════════ -->
+  <div class="slide rec-slide" data-index="5">
+    <h2>🏆 המלצות לפי נקודת מבט</h2>
+    <div class="rec-cards">
+      <div class="rec-card">
+        <div class="rec-icon">😊</div>
+        <div class="rec-title">חוויית מבקרים</div>
+        <div class="rec-scenario combo-c">Combo C</div>
+        <div class="rec-reason">שביעות הרצון הממוצעת הגבוהה ביותר מבין כל החלופות, עם מספר הנטישות הנמוך ביותר.</div>
+        <div class="rec-stat">6.926</div>
+        <div class="rec-stat-label">שביעות רצון ממוצעת</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-icon">⏱️</div>
+        <div class="rec-title">קיצור זמני המתנה</div>
+        <div class="rec-scenario combo-a">Combo A</div>
+        <div class="rec-reason">זמן ההמתנה הממוצע הנמוך ביותר מבין כל החלופות – ירידה של 39% מהמצב הקיים.</div>
+        <div class="rec-stat">17.86 דק׳</div>
+        <div class="rec-stat-label">זמן המתנה ממוצע</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-icon">💰</div>
+        <div class="rec-title">רווח בסימולציה</div>
+        <div class="rec-scenario combo-b">Combo B</div>
+        <div class="rec-reason">הרווח הגבוה ביותר שהופק בסימולציה – עלייה של 30% ביחס למצב הקיים.</div>
+        <div class="rec-stat">₪2,620,036</div>
+        <div class="rec-stat-label">רווח ממוצע</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ SLIDE 7: Summary ═══════════ -->
+  <div class="slide summary-slide" data-index="6">
+    <h2>✨ סיכום ומסקנות</h2>
+    <div class="summary-points">
+      <div class="summary-point">
+        <span class="sp-icon">🔑</span>
+        <div class="sp-text"><strong>כל שלוש הקומבינציות משפרות את המצב הקיים</strong> – בין אם במדד שביעות הרצון, זמני ההמתנה או הרווחיות.</div>
+      </div>
+      <div class="summary-point">
+        <span class="sp-icon">🎯</span>
+        <div class="sp-text"><strong>אין "מנצח" יחיד.</strong> הבחירה תלויה בסדר העדיפויות של ההנהלה: חוויה (Combo C), תפעול (Combo A), או רווח (Combo B).</div>
+      </div>
+      <div class="summary-point">
+        <span class="sp-icon">⚖️</span>
+        <div class="sp-text"><strong>Combo A מייצגת את האיזון הטוב ביותר</strong> – שביעות רצון גבוהה (6.815), זמני ההמתנה הנמוכים ביותר, ורווח סביר – תוך שמירה על תקציב.</div>
+      </div>
+      <div class="summary-point">
+        <span class="sp-icon">📊</span>
+        <div class="sp-text"><strong>כל התוצאות מבוססות על 8 רפליקציות</strong> עם רווחי סמך ברמת 90% ודיוק יחסי ≤10%. ההשוואה בוצעה עם תיקון Bonferroni.</div>
+      </div>
+    </div>
+    <div class="summary-footer">
+      ⚠️ ההמלצה אינה טענה לאופטימום מתמטי. זו המלצת סימולציה המבוססת על רפליקציות סופיות, רווחי סמך, עמידה בתקציב ומדדי הביצוע שנבחרו.
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav-controls">
+  <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">→</button>
+  <span class="slide-counter" id="slideCounter">1 / 7</span>
+  <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>←</button>
+</div>
+<div class="key-hint">← → מקשי חצים לניווט</div>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+
+function showSlide(index) {
+  slides.forEach((s, i) => {
+    s.classList.remove('active');
+    if (i === index) s.classList.add('active');
+  });
+  document.getElementById('slideCounter').textContent = `${index + 1} / ${totalSlides}`;
+  document.getElementById('prevBtn').disabled = index === 0;
+  document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+  document.getElementById('progressBar').style.width = `${((index + 1) / totalSlides) * 100}%`;
+}
+
+function changeSlide(dir) {
+  const next = currentSlide + dir;
+  if (next >= 0 && next < totalSlides) {
+    currentSlide = next;
+    showSlide(currentSlide);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') changeSlide(1);   // RTL: left = next
+  if (e.key === 'ArrowRight') changeSlide(-1); // RTL: right = prev
+});
+
+showSlide(0);
+</script>
+
+</body>
+</html>
